@@ -19,4 +19,4 @@ async def match(resume: UploadFile = File(...), jd: str = Form(...)):
 
     score = cosine_similarity(vectors[0:1], vectors[1:2])[0][0]
 
-   return {"matchScore": round(score * 100, 2)}
+    return {"matchScore": round(score * 100, 2)}
