@@ -1,40 +1,22 @@
 from fastapi import FastAPI, UploadFile, File, Form
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 from pdfminer.high_level import extract_text
-from fastapi.middleware.cors import CORSMiddleware
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 app = FastAPI()
-
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],   # allow Angular
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 
 @app.post("/match")
 async def match(resume: UploadFile = File(...), jd: str = Form(...)):
 
-    # Save resume temporarily
-    with open("temp_resume.pdf", "wb") as f:
+    with open("resume.pdf", "wb") as f:
         f.write(await resume.read())
 
-    # Extract resume text
-    resume_text = extract_text("temp_resume.pdf")
+    resume_text = extract_text("resume.pdf")
 
-    # Create embeddings
-    resume_embedding = model.encode([resume_text])
-    jd_embedding = model.encode([jd])
+    vectorizer = TfidfVectorizer()
 
-    # Cosine similarity
-    score = cosine_similarity(resume_embedding, jd_embedding)[0][0]
+    vectors = vectorizer.fit_transform([resume_text, jd])
 
-    return {
-        "matchScore": round(score * 100, 2)
-    }
+    score = cosine_similarity(vectors[0:1], vectors[1:2])[0][0]
+
+    return {"matchScore": round(score * 100, 2)}
