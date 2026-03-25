@@ -2,16 +2,25 @@ from fastapi import FastAPI, UploadFile, File, Form
 from pdfminer.high_level import extract_text
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import uuid
+import os
 
 app = FastAPI()
+
 
 @app.post("/match")
 async def match(resume: UploadFile = File(...), jd: str = Form(...)):
 
-    with open("resume.pdf", "wb") as f:
+    # unique filename to avoid overwriting
+    filename = f"{uuid.uuid4()}.pdf"
+
+    with open(filename, "wb") as f:
         f.write(await resume.read())
 
-    resume_text = extract_text("resume.pdf")
+    resume_text = extract_text(filename)
+
+    # remove temp file
+    os.remove(filename)
 
     vectorizer = TfidfVectorizer()
 
