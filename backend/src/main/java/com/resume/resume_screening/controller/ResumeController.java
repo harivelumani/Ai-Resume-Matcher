@@ -37,29 +37,16 @@ public class ResumeController {
             resumeDoc.close();
 
             // CALL PYTHON AI SERVICE
-            RestTemplate restTemplate = new RestTemplate();
+RestTemplate restTemplate = new RestTemplate();
 
-MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-
-body.add("resume", new ByteArrayResource(resumeFile.getBytes()) {
-    @Override
-    public String getFilename() {
-        return resumeFile.getOriginalFilename();
-    }
-});
-
-body.add("jd", jdText);
-
-HttpHeaders headers = new HttpHeaders();
-headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-HttpEntity<MultiValueMap<String, Object>> requestEntity =
-        new HttpEntity<>(body, headers);
+Map<String,String> body = new HashMap<>();
+body.put("resume", resumeText);
+body.put("jd", jdText);
 
 ResponseEntity<Map> aiResponse =
         restTemplate.postForEntity(
                 "http://localhost:8000/match",
-                requestEntity,
+                body,
                 Map.class
         );
 
