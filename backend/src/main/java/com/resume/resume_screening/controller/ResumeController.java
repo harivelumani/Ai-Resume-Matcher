@@ -46,7 +46,7 @@ body.put("jd", jdText);
 HttpHeaders headers = new HttpHeaders();
 headers.setContentType(MediaType.APPLICATION_JSON);
 
-HttpEntity<Map<String, String>> requestEntity =
+HttpEntity<Map<String,String>> requestEntity =
         new HttpEntity<>(body, headers);
 
 ResponseEntity<Map> aiResponse =
