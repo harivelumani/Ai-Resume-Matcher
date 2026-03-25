@@ -9,74 +9,71 @@ import java.util.Map;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
+
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 @RestController
 @RequestMapping("/resume")
 @CrossOrigin(origins = "*")
 public class ResumeController {
 
-@PostMapping("/match")
-public Map<String,Object> match(
-        @RequestParam("resume") MultipartFile resumeFile,
-        @RequestParam("jd") String jdText){
+    @PostMapping("/match")
+    public Map<String,Object> match(
+            @RequestParam("resume") MultipartFile resumeFile,
+            @RequestParam("jd") String jdText){
 
-    Map<String,Object> response = new HashMap<>();
+        Map<String,Object> response = new HashMap<>();
 
-    try{
+        try{
 
-        PDFTextStripper stripper = new PDFTextStripper();
+            // Extract resume text (optional but good to keep)
+            PDFTextStripper stripper = new PDFTextStripper();
+            PDDocument resumeDoc = PDDocument.load(resumeFile.getInputStream());
+            String resumeText = stripper.getText(resumeDoc);
+            resumeDoc.close();
 
-        // Extract resume text
-        PDDocument resumeDoc = PDDocument.load(resumeFile.getInputStream());
-        String resumeText = stripper.getText(resumeDoc);
-        resumeDoc.close();
+            // CALL PYTHON AI SERVICE
+            RestTemplate restTemplate = new RestTemplate();
 
-        // CALL PYTHON AI SERVICE
-       // CALL PYTHON AI SERVICE
-RestTemplate restTemplate = new RestTemplate();
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
-Map<String,String> body = new HashMap<>();
-body.put("resume", resumeText);
-body.put("jd", jdText);
+            body.add("resume", new ByteArrayResource(resumeFile.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return resumeFile.getOriginalFilename();
+                }
+            });
 
-ResponseEntity<Map> aiResponse =
-        restTemplate.postForEntity(
-                "http://localhost:8000/match",
-                body,
-                Map.class
-        );
+            body.add("jd", jdText);
 
-Double score = Double.valueOf(
-        aiResponse.getBody().get("matchScore").toString()
-);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-HttpHeaders headers = new HttpHeaders();
-headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            HttpEntity<MultiValueMap<String, Object>> requestEntity =
+                    new HttpEntity<>(body, headers);
 
-HttpEntity<MultiValueMap<String, Object>> requestEntity =
-        new HttpEntity<>(body, headers);
+            ResponseEntity<Map> aiResponse =
+                    restTemplate.postForEntity(
+                            "http://localhost:8000/match",
+                            requestEntity,
+                            Map.class
+                    );
 
-ResponseEntity<Map> aiResponse =
-        restTemplate.postForEntity(
-                "http://localhost:8000/match",
-                requestEntity,
-                Map.class
-        );
+            Double score = Double.valueOf(
+                    aiResponse.getBody().get("matchScore").toString()
+            );
 
-Double score = Double.valueOf(
-        aiResponse.getBody().get("matchScore").toString()
-);
+            response.put("matchScore",score);
 
-        response.put("matchScore",score);
+        }catch(Exception e){
+            e.printStackTrace();
+            response.put("error",e.getMessage());
+        }
 
-    }catch(Exception e){
-        e.printStackTrace();
-        response.put("error",e.getMessage());
+        return response;
     }
-
-    return response;
-}
-
 }
