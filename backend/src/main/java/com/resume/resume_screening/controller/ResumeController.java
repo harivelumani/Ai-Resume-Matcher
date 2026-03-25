@@ -39,33 +39,33 @@ public class ResumeController {
             // CALL PYTHON AI SERVICE
             RestTemplate restTemplate = new RestTemplate();
 
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
-            body.add("resume", new ByteArrayResource(resumeFile.getBytes()) {
-                @Override
-                public String getFilename() {
-                    return resumeFile.getOriginalFilename();
-                }
-            });
+body.add("resume", new ByteArrayResource(resumeFile.getBytes()) {
+    @Override
+    public String getFilename() {
+        return resumeFile.getOriginalFilename();
+    }
+});
 
-            body.add("jd", jdText);
+body.add("jd", jdText);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+HttpHeaders headers = new HttpHeaders();
+headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-            HttpEntity<MultiValueMap<String, Object>> requestEntity =
-                    new HttpEntity<>(body, headers);
+HttpEntity<MultiValueMap<String, Object>> requestEntity =
+        new HttpEntity<>(body, headers);
 
-            ResponseEntity<Map> aiResponse =
-                    restTemplate.postForEntity(
-                            "http://localhost:8000/match",
-                            requestEntity,
-                            Map.class
-                    );
+ResponseEntity<Map> aiResponse =
+        restTemplate.postForEntity(
+                "http://localhost:8000/match",
+                requestEntity,
+                Map.class
+        );
 
-            Double score = Double.valueOf(
-                    aiResponse.getBody().get("matchScore").toString()
-            );
+Double score = Double.valueOf(
+        aiResponse.getBody().get("matchScore").toString()
+);
 
             response.put("matchScore",score);
 
