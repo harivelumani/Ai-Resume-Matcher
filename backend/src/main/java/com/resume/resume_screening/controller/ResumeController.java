@@ -34,22 +34,36 @@ public Map<String,Object> match(
         resumeDoc.close();
 
         // CALL PYTHON AI SERVICE
-        RestTemplate restTemplate = new RestTemplate();
+       // CALL PYTHON AI SERVICE
+RestTemplate restTemplate = new RestTemplate();
 
-        Map<String,String> body = new HashMap<>();
-        body.put("resume", resumeText);
-        body.put("jd", jdText);
+MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
-        ResponseEntity<Map> aiResponse =
-                restTemplate.postForEntity(
-                        "http://localhost:8000/match",
-                        body,
-                        Map.class
-                );
+body.add("resume", new ByteArrayResource(resumeFile.getBytes()) {
+    @Override
+    public String getFilename() {
+        return resumeFile.getOriginalFilename();
+    }
+});
 
-        Double score = Double.valueOf(
-                aiResponse.getBody().get("matchScore").toString()
+body.add("jd", jdText);
+
+HttpHeaders headers = new HttpHeaders();
+headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+HttpEntity<MultiValueMap<String, Object>> requestEntity =
+        new HttpEntity<>(body, headers);
+
+ResponseEntity<Map> aiResponse =
+        restTemplate.postForEntity(
+                "http://localhost:8000/match",
+                requestEntity,
+                Map.class
         );
+
+Double score = Double.valueOf(
+        aiResponse.getBody().get("matchScore").toString()
+);
 
         response.put("matchScore",score);
 
