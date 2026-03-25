@@ -37,16 +37,20 @@ public Map<String,Object> match(
        // CALL PYTHON AI SERVICE
 RestTemplate restTemplate = new RestTemplate();
 
-MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+Map<String,String> body = new HashMap<>();
+body.put("resume", resumeText);
+body.put("jd", jdText);
 
-body.add("resume", new ByteArrayResource(resumeFile.getBytes()) {
-    @Override
-    public String getFilename() {
-        return resumeFile.getOriginalFilename();
-    }
-});
+ResponseEntity<Map> aiResponse =
+        restTemplate.postForEntity(
+                "http://localhost:8000/match",
+                body,
+                Map.class
+        );
 
-body.add("jd", jdText);
+Double score = Double.valueOf(
+        aiResponse.getBody().get("matchScore").toString()
+);
 
 HttpHeaders headers = new HttpHeaders();
 headers.setContentType(MediaType.MULTIPART_FORM_DATA);
