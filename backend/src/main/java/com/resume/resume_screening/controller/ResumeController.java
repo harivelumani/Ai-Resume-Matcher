@@ -39,14 +39,21 @@ public class ResumeController {
             // CALL PYTHON AI SERVICE
 RestTemplate restTemplate = new RestTemplate();
 
-Map<String,String> body = new HashMap<>();
+Map<String, String> body = new HashMap<>();
 body.put("resume", resumeText);
 body.put("jd", jdText);
 
+HttpHeaders headers = new HttpHeaders();
+headers.setContentType(MediaType.APPLICATION_JSON);
+
+HttpEntity<Map<String, String>> requestEntity =
+        new HttpEntity<>(body, headers);
+
 ResponseEntity<Map> aiResponse =
-        restTemplate.postForEntity(
+        restTemplate.exchange(
                 "http://localhost:8000/match",
-                body,
+                HttpMethod.POST,
+                requestEntity,
                 Map.class
         );
 
