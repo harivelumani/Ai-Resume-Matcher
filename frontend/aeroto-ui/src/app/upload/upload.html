@@ -1,0 +1,42 @@
+<div class="container mt-5" ngSkipHydration>
+
+  <h1 class="text-center text-primary">
+    Aeroto AI Resume Matcher
+  </h1>
+
+  <p class="text-center text-muted">
+    Upload Resume and paste Job Description to see match score
+  </p>
+
+  <div class="card p-4 mt-4 shadow">
+
+    <h4>Job Description</h4>
+
+    <textarea
+      class="form-control"
+      rows="4"
+      [(ngModel)]="jdText"
+      placeholder="Paste job description here">
+    </textarea>
+
+    <h4 class="mt-3">Upload Resume</h4>
+
+    <input
+      type="file"
+      class="form-control"
+      (change)="onResumeSelected($event)"
+    >
+
+    <button
+      class="btn btn-primary mt-3"
+      (click)="upload()">
+      Analyze Match
+    </button>
+
+    <div *ngIf="score !== undefined" class="alert alert-success mt-3">
+      AI Match Score: {{score}} %
+    </div>
+
+  </div>
+
+</div>
