@@ -32,7 +32,7 @@ formData.append("resume", this.selectedResume);
 formData.append("jd", this.jdText);
 
 this.http.post<any>(
-"http://localhost:8000/match",
+"http://localhost:8080/resume/match",
 formData
 ).subscribe(res=>{
 
